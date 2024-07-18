@@ -1,0 +1,46 @@
+const express= require("express");
+const {connectToMongoDB}= require("./connect")
+const urlRoute=require("./routes/url");
+const URL= require("./models/url");
+
+const app= express();
+const PORT=8000;
+
+connectToMongoDB("mongodb://localhost:27017/short-url")
+.then(()=>console.log("MongoDb connected Successfully"))
+
+app.use(express.json());
+
+
+app.use("/url", urlRoute);
+app.get("/:shortId", async (req, res) => {
+    const shortId = req.params.shortId;
+    try {
+      const entry = await URL.findOneAndUpdate(
+        { ShortId: shortId }, 
+        {
+          $push: {
+            visitHistory: {
+              timestamp: Date.now()
+            }
+          }
+        },
+        { new: true } // To return the updated document
+      );
+  
+      if (entry) {
+        console.log("Redirecting to:", entry.redirectURL);
+        res.redirect(entry.redirectURL);
+      } else {
+        res.status(404).send("URL not found");
+      }
+    } catch (err) {
+      console.error("Error fetching URL from database:", err);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+app.listen(PORT, (err)=>{
+    if(err) console.log(`Error is ${err}`);
+    else console.log(`Server running on PORT ${PORT}`);
+})
