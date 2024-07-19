@@ -45,8 +45,7 @@ app.get("/:shortId", async (req, res) => {
           }
         },
         { new: true } // To return the updated document
-      );
-  
+      ); 
       if (entry) {
         console.log("Redirecting to:", entry.redirectURL);
         res.redirect(entry.redirectURL);
