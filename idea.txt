@@ -10,6 +10,12 @@ GET/:id - Redirects the user to the original URL.
 GET/URL/analytics/:id - Returns the clicks for the provided short id.
 
 GET/ - Go to home or main page of Short_Karo.
+
+GET/signup - Go to the signup page of Short_Karo.
+
+POST/user - It will create a new user.
+
+POST/login - It wiil login to the Short_Karo.
   
 
 

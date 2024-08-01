@@ -1,9 +1,15 @@
 const express= require("express");
 const path= require("path");
+const cookieParser= require("cookie-parser");
 const {connectToMongoDB}= require("./connect")
+
+const {restrictToLoggedInUserOnly, checkAuth}=require("./middleware/auth");
+const URL= require("./models/url");
+
+// All routes
 const urlRoute=require("./routes/url");
 const staticRoute=require("./routes/staticRouter");
-const URL= require("./models/url");
+const userRoute= require("./routes/user");
 
 const app= express();
 const PORT=8000;
@@ -14,9 +20,10 @@ connectToMongoDB("mongodb://localhost:27017/short-url")
 app.set("view engine", "ejs");
 app.set("views", path.resolve("./views")); // path for ejs files
 
+app.use(express.static('public'));  // for css file
 app.use(express.json());
 app.use(express.urlencoded({ extended: false}));
-
+app.use(cookieParser());
 //for ejs files
 // app.get("/test", async(req, res)=>{
 //   const allUrls= await URL.find({});
@@ -29,8 +36,11 @@ app.use((req, res, next) => {
   res.locals.port = PORT;
   next();
 });
-app.use("/url", urlRoute);
-app.use("/", staticRoute);
+
+//Registering Routes
+app.use("/user", userRoute); 
+app.use("/url", restrictToLoggedInUserOnly, urlRoute); // first check user is looged in or not
+app.use("/", checkAuth, staticRoute);
 
 app.get("/:shortId", async (req, res) => {
     const shortId = req.params.shortId;
